@@ -12,7 +12,12 @@ import logging
 from pathlib import Path
 
 from finassist.analysis import math_guardrail
-from finassist.analysis.models import Citation, EarningsSummary, RetrievedChunk
+from finassist.analysis.models import (
+    Citation,
+    EarningsSummary,
+    FinancialMetric,
+    RetrievedChunk,
+)
 from finassist.llm.client import LLMClient
 from finassist.search import retriever
 
@@ -48,16 +53,45 @@ def summarize(
 
     prose = _safe_json(llm.chat(_SYSTEM, _user_prompt(retrieved), json_mode=True))
 
+    resolved_company = company or prose.get("company")
+    resolved_period = fiscal_period or prose.get("fiscal_period")
+    headline = prose.get("headline") or _fallback_headline(
+        resolved_company, resolved_period, key_metrics
+    )
+
     return EarningsSummary(
-        company=company or prose.get("company"),
-        fiscal_period=fiscal_period or prose.get("fiscal_period"),
-        headline=prose.get("headline", ""),
+        company=resolved_company,
+        fiscal_period=resolved_period,
+        headline=headline,
         key_metrics=key_metrics,
         segments=segments,
-        guidance=prose.get("guidance", []),
-        notable_items=prose.get("notable_items", []),
+        guidance=prose.get("guidance") or [],
+        notable_items=prose.get("notable_items") or [],
         citations=_dedupe_citations(c for _, c in tables),
     )
+
+
+def _fallback_headline(
+    company: str | None, period: str | None, metrics: list[FinancialMetric]
+) -> str:
+    """Compose a grounded headline from computed metrics when the LLM omits one.
+
+    Keeps the demo reliable without inventing anything: every figure comes from
+    ``math_guardrail``. Returns "" when no metric values are available.
+    """
+    parts = []
+    for metric in metrics[:2]:
+        if metric.value is None:
+            continue
+        has_millions = bool(metric.unit and "million" in metric.unit.lower())
+        unit = "million" if has_millions else (metric.unit or "")
+        amount = f"${metric.value:,.0f} {unit}".strip()
+        parts.append(f"{metric.name.lower()} of {amount}")
+    if not parts:
+        return ""
+    subject = company or "The company"
+    tail = f" for {period}" if period else ""
+    return f"{subject} reported {', '.join(parts)}{tail}."
 
 
 def _user_prompt(retrieved: list[RetrievedChunk]) -> str:
