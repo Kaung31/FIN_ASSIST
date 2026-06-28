@@ -1,0 +1,12 @@
+# Mirror of pyproject [project].dependencies — pip install -r requirements.txt
+openai>=1.40.0
+azure-identity>=1.21.0
+azure-ai-documentintelligence>=1.0.2
+azure-search-documents>=11.6.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+python-multipart>=0.0.9
+pymupdf>=1.24.0
+tenacity>=8.3.0

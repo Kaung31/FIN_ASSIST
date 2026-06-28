@@ -1,0 +1,14 @@
+.venv/
+.venv-ragas/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+data/samples/*
+!data/samples/README.md
+!data/samples/sample.pdf
+.figures_tmp/
+eval/results/
+financial-assistant.zip

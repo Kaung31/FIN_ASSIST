@@ -1,0 +1,109 @@
+<svg width="100%" viewBox="0 0 680 472" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>FinAssist all-Azure architecture</title>
+<desc>Ingest path: PDF to Azure Document Intelligence parse, chart description, chunking, Azure OpenAI embeddings, indexed into Azure AI Search. Query path: question to hybrid+semantic retrieval from AI Search, then summarize/anomaly/Q&A reasoning using the math guardrail (numbers in Python) and Azure OpenAI, producing typed results with citations.</desc>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#7d8694"/>
+</marker>
+<style>
+text{font-family:var(--font-sans, ui-sans-serif, system-ui, -apple-system, sans-serif);}
+.h1{fill:var(--color-text-primary,#11181c);font-size:18px;font-weight:700;}
+.h2{fill:var(--color-text-secondary,#69707a);font-size:11px;}
+.lane{fill:var(--color-text-secondary,#8a93a0);font-size:11px;font-weight:700;letter-spacing:1.5px;}
+.t-title{font-size:12.5px;font-weight:700;}
+.t-sub{font-size:9.5px;}
+.t-file{font-family:var(--font-mono, ui-monospace, monospace);font-size:8.5px;}
+.azure{fill:#e6f1fb;stroke:#2f6fb0;stroke-width:1.4;}
+.local{fill:#f1f3f5;stroke:#a4abb5;stroke-width:1.4;}
+.az-tx{fill:#0c447c;} .lo-tx{fill:#222831;}
+.sub{fill:#5a6472;} .file{fill:#7a8290;}
+.flow{stroke:#7d8694;stroke-width:1.6;fill:none;}
+.elabel{fill:#7a8290;font-size:8.5px;font-style:italic;}
+@media (prefers-color-scheme:dark){
+ .azure{fill:#11324f;stroke:#5aa0ea;} .local{fill:#2a2f36;stroke:#7b8490;}
+ .az-tx{fill:#dcebfb;} .lo-tx{fill:#e7eaee;}
+ .sub{fill:#a7aeb8;} .file{fill:#8a93a0;} .flow{stroke:#9aa3ae;} .elabel{fill:#9aa3ae;}
+}
+</style>
+</defs>
+
+<text class="h1" x="20" y="28">FinAssist — all-Azure RAG architecture</text>
+<text class="h2" x="20" y="46">Ingest builds the index · Query reads it · all numbers computed in Python</text>
+
+<text class="lane" x="20" y="78">INGEST · OFFLINE → BUILDS THE INDEX</text>
+
+<g><rect class="local" x="21" y="86" width="118" height="54" rx="8"/>
+<text class="t-title lo-tx" x="80" y="107" text-anchor="middle">PDF bytes</text>
+<text class="t-sub sub" x="80" y="121" text-anchor="middle">upload</text>
+<text class="t-file file" x="80" y="134" text-anchor="middle">data/samples</text></g>
+<g><rect class="azure" x="151" y="86" width="118" height="54" rx="8"/>
+<text class="t-title az-tx" x="210" y="107" text-anchor="middle">Parse</text>
+<text class="t-sub sub" x="210" y="121" text-anchor="middle">DocIntel layout</text>
+<text class="t-file file" x="210" y="134" text-anchor="middle">parser.py</text></g>
+<g><rect class="azure" x="281" y="86" width="118" height="54" rx="8"/>
+<text class="t-title az-tx" x="340" y="107" text-anchor="middle">Describe charts</text>
+<text class="t-sub sub" x="340" y="121" text-anchor="middle">Azure OpenAI vision</text>
+<text class="t-file file" x="340" y="134" text-anchor="middle">chart_describer.py</text></g>
+<g><rect class="local" x="411" y="86" width="118" height="54" rx="8"/>
+<text class="t-title lo-tx" x="470" y="107" text-anchor="middle">Chunk</text>
+<text class="t-sub sub" x="470" y="121" text-anchor="middle">table · figure · text</text>
+<text class="t-file file" x="470" y="134" text-anchor="middle">chunker.py</text></g>
+<g><rect class="azure" x="541" y="86" width="118" height="54" rx="8"/>
+<text class="t-title az-tx" x="600" y="107" text-anchor="middle">Embed</text>
+<text class="t-sub sub" x="600" y="121" text-anchor="middle">Azure OpenAI emb</text>
+<text class="t-file file" x="600" y="134" text-anchor="middle">embedder.py</text></g>
+
+<line class="flow" x1="139" y1="113" x2="150" y2="113" marker-end="url(#ah)"/>
+<line class="flow" x1="269" y1="113" x2="280" y2="113" marker-end="url(#ah)"/>
+<line class="flow" x1="399" y1="113" x2="410" y2="113" marker-end="url(#ah)"/>
+<line class="flow" x1="529" y1="113" x2="540" y2="113" marker-end="url(#ah)"/>
+
+<path class="flow" d="M600,140 L600,160 L340,160 L340,174" marker-end="url(#ah)"/>
+<text class="elabel" x="404" y="156" text-anchor="middle">indexer.py · upload</text>
+
+<g><rect class="azure" x="240" y="175" width="200" height="46" rx="11"/>
+<text class="t-title az-tx" x="340" y="197" text-anchor="middle">Azure AI Search</text>
+<text class="t-sub sub" x="340" y="212" text-anchor="middle">vector + BM25 + semantic</text></g>
+
+<path class="flow" d="M340,221 L340,240 L258,240 L258,257" marker-end="url(#ah)"/>
+<text class="elabel" x="304" y="236" text-anchor="middle">reads</text>
+
+<text class="lane" x="20" y="250">QUERY · ONLINE → READS THE INDEX</text>
+
+<g><rect class="local" x="19" y="258" width="150" height="54" rx="8"/>
+<text class="t-title lo-tx" x="94" y="279" text-anchor="middle">Question</text>
+<text class="t-sub sub" x="94" y="293" text-anchor="middle">from API / UI</text>
+<text class="t-file file" x="94" y="306" text-anchor="middle">/chat · /summarize</text></g>
+<g><rect class="azure" x="183" y="258" width="150" height="54" rx="8"/>
+<text class="t-title az-tx" x="258" y="279" text-anchor="middle">Retrieve</text>
+<text class="t-sub sub" x="258" y="293" text-anchor="middle">hybrid + semantic + filter</text>
+<text class="t-file file" x="258" y="306" text-anchor="middle">retriever.py</text></g>
+<g><rect class="local" x="347" y="258" width="150" height="54" rx="8"/>
+<text class="t-title lo-tx" x="422" y="279" text-anchor="middle">Reason</text>
+<text class="t-sub sub" x="422" y="293" text-anchor="middle">summary · anomaly · Q&amp;A</text>
+<text class="t-file file" x="422" y="306" text-anchor="middle">summarizer · rag_chat</text></g>
+<g><rect class="local" x="511" y="258" width="150" height="54" rx="8"/>
+<text class="t-title lo-tx" x="586" y="279" text-anchor="middle">Answer</text>
+<text class="t-sub sub" x="586" y="293" text-anchor="middle">typed + citations</text>
+<text class="t-file file" x="586" y="306" text-anchor="middle">models.py</text></g>
+
+<line class="flow" x1="169" y1="285" x2="182" y2="285" marker-end="url(#ah)"/>
+<line class="flow" x1="333" y1="285" x2="346" y2="285" marker-end="url(#ah)"/>
+<line class="flow" x1="497" y1="285" x2="510" y2="285" marker-end="url(#ah)"/>
+
+<g><rect class="local" x="205" y="350" width="130" height="46" rx="8"/>
+<text class="t-title lo-tx" x="270" y="370" text-anchor="middle">Math guardrail</text>
+<text class="t-sub sub" x="270" y="384" text-anchor="middle">numbers in Python</text></g>
+<g><rect class="azure" x="355" y="350" width="130" height="46" rx="8"/>
+<text class="t-title az-tx" x="420" y="370" text-anchor="middle">LLM</text>
+<text class="t-sub sub" x="420" y="384" text-anchor="middle">Azure OpenAI chat</text></g>
+
+<path class="flow" d="M270,350 L270,332 L388,332 L388,313" marker-end="url(#ah)"/>
+<path class="flow" d="M420,350 L420,313" marker-end="url(#ah)"/>
+
+<rect class="azure" x="20" y="416" width="13" height="13" rx="3"/>
+<text class="t-sub lo-tx" x="40" y="426">Azure cloud — mocked in MOCK_MODE</text>
+<rect class="local" x="300" y="416" width="13" height="13" rx="3"/>
+<text class="t-sub lo-tx" x="320" y="426">Local Python — runs for real</text>
+<text class="t-file file" x="20" y="450">MOCK_MODE=true (default) mocks all three Azure services, so the whole pipeline runs at zero cost.</text>
+</svg>

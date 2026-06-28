@@ -1,0 +1,79 @@
+[project]
+name = "finassist"
+version = "0.1.0"
+description = "Multimodal financial-report assistant (Azure Document Intelligence + AI Search + Azure OpenAI)"
+requires-python = ">=3.11"
+dependencies = [
+    # Azure OpenAI (chat + embeddings) via the openai client; azure-identity for AAD auth
+    "openai>=1.40.0",
+    "azure-identity>=1.21.0",
+    # Azure Document Intelligence (prebuilt-layout) — the CURRENT package (not azure-ai-formrecognizer)
+    "azure-ai-documentintelligence>=1.0.2",
+    # Azure AI Search — hybrid (BM25 + vector) + semantic ranker
+    "azure-search-documents>=11.6.0",
+    # App
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "python-multipart>=0.0.9",   # file uploads in FastAPI
+    "pymupdf>=1.24.0",           # crop figure regions out of PDF pages
+    "tenacity>=8.3.0",           # retry/backoff around cloud calls
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.5.0",
+    "streamlit>=1.36.0",
+    "respx>=0.21.0",             # mock httpx/OpenAI in tests
+]
+# Tracing — Arize Phoenix (local, no key). Kept separate from ragas so its langchain tree
+# can't break Phoenix or the core package.
+eval = [
+    "arize-phoenix>=4.0.0",
+    "openinference-instrumentation-openai>=0.1.0",
+]
+# RAGAS evaluation — pinned to the 0.2 line + the langchain 0.3 stack. ragas imports
+# langchain_community.chat_models.vertexai, which langchain-community >=0.4 removed, so the whole
+# langchain stack must stay <0.4. Heavy + version-sensitive → install in its OWN venv:
+#   python3.12 -m venv .venv-ragas
+#   .venv-ragas/bin/pip install -e ".[ragas]"
+ragas = [
+    "ragas>=0.2,<0.3",
+    "langchain<0.4",
+    "langchain-community<0.4",
+    "langchain-core<0.4",
+    "langchain-openai<0.3",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI deliberately uses callables (Depends/File/Query/Body) in argument defaults.
+"src/finassist/api/**/*.py" = ["B008"]
+# CLI scripts insert the repo root on sys.path before importing the local `config` package.
+"scripts/**/*.py" = ["E402"]
+# conftest sets hermetic env vars (MOCK_MODE) before importing config/finassist.
+"tests/conftest.py" = ["E402"]
+
+[tool.pytest.ini_options]
+# "src" for the finassist package, "." for the repo-root config package.
+pythonpath = ["src", "."]
+markers = [
+    "integration: hits real Azure resources (DocIntel/AI Search/Azure OpenAI); opt-in, not run by default",
+]
+asyncio_mode = "auto"
